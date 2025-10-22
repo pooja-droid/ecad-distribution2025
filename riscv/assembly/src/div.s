@@ -39,7 +39,8 @@ div:
 
 .Ldiv_by_zero:
     li      a0, 0
-    mv      a1, t0
+    li      a1, 0
+    j    .Ldone
 
 .Ldone:
     lw   ra, 28(sp)
