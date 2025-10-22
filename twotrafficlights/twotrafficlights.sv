@@ -4,7 +4,33 @@ module twotrafficlights(
       output logic [2:0] lightsA, 
       output logic [2:0] lightsB
     );
-  logic [2:0] state;
+  logic [2:0] state, next_state;
   // insert your code here
+  
+  always_ff @(posedge clk) begin
+	if (rst)
+		state <= 3'd0;
+	else
+		state <= next_state;
+  end
 
+  always_comb begin
+	next_state = (state == 3'd7) ? 3'd0 : state + 3'd1;
+  end
+
+  always_comb begin
+	case (state)
+	  3'd0: begin lightsA = 3'b100; lightsB = 3'b110; end
+	  3'd1: begin lightsA = 3'b100; lightsB = 3'b001; end
+	  3'd2: begin lightsA = 3'b100; lightsB = 3'b010; end
+	  3'd3: begin lightsA = 3'b100; lightsB = 3'b100; end
+	  3'd4: begin lightsA = 3'b110; lightsB = 3'b100; end
+	  3'd5: begin lightsA = 3'b001; lightsB = 3'b100; end
+	  3'd6: begin lightsA = 3'b010; lightsB = 3'b100; end
+	  3'd7: begin lightsA = 3'b100; lightsB = 3'b100; end
+	  default: begin lightsA = 3'b100; lightsB = 3'b100; end
+	endcase
+  end
 endmodule
+
+  
