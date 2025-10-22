@@ -1,27 +1,48 @@
-.macro DEBUG_PRINT reg
-csrw 0x800, \reg
-.endm
-	
-.text
-.global div              # Export the symbol 'div' so we can call it from other files
-.type div, @function
+    .macro DEBUG_PRINT reg
+    csrw 0x800, \reg
+    .endm
+        
+    .text
+    .global div
+    .type div, @function
 div:
-    addi sp, sp, -32     # Allocate stack space
+    addi sp, sp, -32
+    sw   ra, 28(sp)
+    sw   s0, 24(sp)
 
-    # store any callee-saved register you might overwrite
-    sw   ra, 28(sp)      # Function calls would overwrite
-    sw   s0, 24(sp)      # If t0-t6 is not enough, can use s0-s11 if I save and restore them
-    # ...
+    # --- division algorithm ---
+    mv      t0, a0
+    mv      t1, a1
+    beq     t1, x0, .Ldiv_by_zero
 
-    # do your work
-    # example of printing inputs a0 and a1
-    DEBUG_PRINT a0
-    DEBUG_PRINT a1
+    li      a0, 0
+    li      t2, 0
+    li      t4, 31
 
-    # load every register you stored above
+.Lloop:
+    slli    t2, t2, 1
+    srl     t5, t0, t4
+    andi    t5, t5, 1
+    or      t2, t2, t5
+    sltu    t6, t2, t1
+    bne     t6, x0, .Lskip
+    sub     t2, t2, t1
+    li      t3, 1
+    sll     t3, t3, t4
+    or      a0, a0, t3
+.Lskip:
+    addi    t4, t4, -1
+    bge     t4, x0, .Lloop
+
+    mv      a1, t2
+    j       .Ldone
+
+.Ldiv_by_zero:
+    li      a0, 0
+    mv      a1, t0
+
+.Ldone:
     lw   ra, 28(sp)
     lw   s0, 24(sp)
-    # ...
-    addi sp, sp, 32      # Free up stack space
+    addi sp, sp, 32
     ret
-
